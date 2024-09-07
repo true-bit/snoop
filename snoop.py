@@ -1178,8 +1178,8 @@ def run():
         thread_proc = "потоков" if Windows else "процессов"
         print(Fore.CYAN + format_txt(f"активирована опция '-p': «макс. рабочих {thread_proc} =" + \
                                      "{0}{1} {2}{3}{4}» {5}".format(Style.BRIGHT, Fore.CYAN, args.speed,
-                                                                     Style.RESET_ALL, Fore.CYAN,
-                                                                     Style.RESET_ALL), k=True))
+                                                                    Style.RESET_ALL, Fore.CYAN,
+                                                                    Style.RESET_ALL), k=True))
     elif args.speed and 'demo' in version:
         snoopbanner.logo(text=format_txt("в demo недоступна опция '-p' пользовательская настройка ускорения", k=True), exit=False)
         snoopbanner.donate()
