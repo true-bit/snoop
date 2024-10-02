@@ -911,15 +911,20 @@ def update_snoop():
                     __             _  
    ._  _| _._|_ _  (_ ._  _  _ ._   ) 
 |_||_)(_|(_| |_(/_ __)| |(_)(_)|_) o  
-   |                           |    
-Выберите действие:\033[0m [y/n] """, end='')
+   |                           |    \033[0m""")
 
-    upd = input()
-
-    if upd == "y" or upd == "Y":
-        print("\033[36mПримечание: функция обновления Snoop работает при помощи утилиты < Git >\033[0m")
-        os.startfile("update.bat") if Windows else os.system("./update.sh")
-    print(Style.BRIGHT + Fore.RED + "\nВыход")
+    while True:
+        print("\033[36mВыберите действие:\033[0m [y/n] ", end='')
+        upd = input()
+        if upd == "y" or upd == "Y":
+            print("\033[36mПримечание: функция обновления Snoop работает при помощи утилиты < Git >\033[0m")
+            os.startfile("update.bat") if Windows else os.system("./update.sh")
+            break
+        elif upd == "n" or upd == "N":
+            print(Style.BRIGHT + Fore.RED + "\nОбновление отклонено\nВыход")
+            break
+        else:
+            print(Style.BRIGHT + Fore.RED + format_txt("{0}└──False, [Y/N] ?", k=True, m=True).format(' ' * 25))
     sys.exit()
 
 
@@ -930,34 +935,38 @@ def autoclean():
                _                _  
  _| _ |  _.|| |_) _ ._  _ .-_|_  ) 
 (_|(/_| (_||| | \(/_|_)(_)|  |_ o  
-                    |                      \033[0m
-\033[36mВыберите действие:\033[0m [y/n] """, end='')
+                    |             \033[0m""")
 
-    del_all = input()
-
-    if del_all == "y" or del_all == "Y":
-        try:
+    while True:
+        print("\033[36mВыберите действие:\033[0m [y/n] ", end='')
+        del_all = input()
+        if del_all == "y" or del_all == "Y":
+            try:
 # Определение директорий.
-            path_build_del = "/results" if not Windows else "\\results"
-            if 'source' in version and not Android:
-                rm = dirpath + path_build_del
-                reports = rm
-            else:
-                rm = dirpath
-                reports = rm + path_build_del
+                path_build_del = "/results" if not Windows else "\\results"
+                if 'source' in version and not Android:
+                    rm = dirpath + path_build_del
+                    reports = rm
+                else:
+                    rm = dirpath
+                    reports = rm + path_build_del
 # Подсчет файлов и размера удаляемого каталога 'results'.
-            total_size = 0
-            delfiles = []
-            for total_file in glob.iglob(reports + '/**/*', recursive=True):
-                total_size += os.path.getsize(total_file)
-                if os.path.isfile(total_file): delfiles.append(total_file)
+                total_size = 0
+                delfiles = []
+                for total_file in glob.iglob(reports + '/**/*', recursive=True):
+                    total_size += os.path.getsize(total_file)
+                    if os.path.isfile(total_file): delfiles.append(total_file)
 # Сброс кэша и удаление каталога 'results'.
-            shutil.rmtree(rm, ignore_errors=True)
-            print(f"\n\033[31;1mdeleted --> '{rm}'\033[0m\033[36m {len(delfiles)} files, {round(total_size/1024/1024, 2)} Mb\033[0m")
-        except Exception:
-            console.log("[red]Ошибка")
-    else:
-        print(Style.BRIGHT + Fore.RED + "\nВыход")
+                shutil.rmtree(rm, ignore_errors=True)
+                print(f"\n\033[31;1mdeleted --> '{rm}'\033[0m\033[36m {len(delfiles)} files, {round(total_size/1024/1024, 2)} Mb\033[0m")
+            except Exception:
+                console.log("[red]Ошибка")
+            break
+        elif del_all == "n" or del_all == "N":
+            print(Style.BRIGHT + Fore.RED + "\nОтмена действия\nВыход")
+            break
+        else:
+            print(Style.BRIGHT + Fore.RED + format_txt("{0}└──False, [Y/N] ?", k=True, m=True).format(' ' * 25))
     sys.exit()
 
 
@@ -1315,7 +1324,6 @@ def run():
         print(Fore.CYAN + format_txt("активирована опция '-l': «детальная информация о БД Snoop»", k=True))
         print("\033[36m\nСортировать БД Snoop по странам, по имени сайта или обобщенно ?\n" + \
               "по странам —\033[0m 1 \033[36mпо имени —\033[0m 2 \033[36mall —\033[0m 3\n")
-        sortY = console.input("[cyan]Выберите действие: [/cyan]")
 
 # Общий вывод стран (3!).
 # Вывод для full/demo version.
@@ -1378,15 +1386,19 @@ def run():
                 print("~~~~~~~~~~~~~~~~\n".join(listfull))
 
 # Запуск функции '--list-all'.
-        if sortY == "1" or sortY == "2":
-            sort_list_all(BDflag, Fore.GREEN, "full version", line=True)
-            sort_list_all(BDdemo, Fore.RED, "demo version")
-        elif sortY == "3":
-            sort_list_all(BDdemo, Fore.RED, "demo version", line=True)
-            sort_list_all(BDflag, Fore.GREEN, "full version")
+        while True:
+            sortY = console.input("[cyan]Выберите действие: [/cyan]")
+            if sortY == "1" or sortY == "2":
+                sort_list_all(BDflag, Fore.GREEN, "full version", line=True)
+                sort_list_all(BDdemo, Fore.RED, "demo version")
+                break
+            elif sortY == "3":
+                sort_list_all(BDdemo, Fore.RED, "demo version", line=True)
+                sort_list_all(BDflag, Fore.GREEN, "full version")
+                break
 # Действие не выбрано '--list-all'.
-        else:
-            print(Style.BRIGHT + Fore.RED + format_txt("└──извините, но вы не выбрали действие [1/2/3]", k=True, m=True) + "\n\nВыход")
+            else:
+                print(Style.BRIGHT + Fore.RED + format_txt("{0}└──False, [1/2/3] ?", k=True, m=True).format(' ' * 19))
         sys.exit()
 
 
