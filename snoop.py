@@ -364,25 +364,23 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
     if speed:
         connections = speed + 10
         maxsize = speed + 5
-
-    if Windows and 'full' in version:
-        if os.cpu_count() > 16:
-            connections_win = 130
-            maxsize_win = 120
-        elif os.cpu_count() == 16:
-            connections_win = 90
-            maxsize_win = 80
-        elif os.cpu_count() == 12:
-            connections_win = 70
-            maxsize_win = 60
-        elif os.cpu_count() <= 8:
+    elif speed is False:
+        if Windows and 'full' in version:
+            if os.cpu_count() > 16:
+                connections_win = 130
+                maxsize_win = 120
+            elif os.cpu_count() == 16:
+                connections_win = 90
+                maxsize_win = 80
+            elif os.cpu_count() == 12:
+                connections_win = 70
+                maxsize_win = 60
+            elif os.cpu_count() <= 8:
+                connections_win = 50
+                maxsize_win = 40
+        elif Windows and 'demo' in version:
             connections_win = 50
-            maxsize_win = 40
-    elif Windows and 'demo' in version:
-        connections_win = 50
-        maxsize_win = 30
-
-    if speed is False:
+            maxsize_win = 30
         connections = 200 if not Windows else connections_win
         maxsize = 100 if not Windows else maxsize_win
 
