@@ -521,9 +521,9 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
         executor1 = ThreadPoolExecutor(max_workers=tread__ if not speed else speed)
     elif Linux:
         if norm is False:
-            proc_ = len(BDdemo_new) if len(BDdemo_new) < 80 else 80
+            proc_ = len(BDdemo_new) if len(BDdemo_new) < 80 else (40 if os.cpu_count() == 1 else 80)
         else:
-            proc_ = len(BDdemo_new) if len(BDdemo_new) < 100 else 100
+            proc_ = len(BDdemo_new) if len(BDdemo_new) < 100 else (50 if os.cpu_count() == 1 else 100)
         executor1 = ProcessPoolExecutor(max_workers=proc_ if not speed else speed)
 
     if reports:
