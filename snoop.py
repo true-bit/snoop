@@ -980,7 +980,7 @@ def license_snoop():
         console.print(Panel(cop, title='[bold white]COPYRIGHT[/bold white]', style=STL(color="white", bgcolor="blue")))
 
     if not Android:
-        pool_ = os.cpu_count() * 5 if Windows else 100
+        pool_ = os.cpu_count() * 5 if Windows else (50 if os.cpu_count() == 1 else 100)
 
         if Windows and 'full' in version:
             ram_av = 1100
