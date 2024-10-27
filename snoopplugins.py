@@ -2,9 +2,7 @@
 # Copyright (c) 2020 Snoop Project <snoopproject@protonmail.com>
 """Плагины Snoop Project/Черновик"""
 
-import csv
 import ipaddress
-import itertools
 import json
 import locale
 import os
@@ -12,34 +10,23 @@ import platform
 import re
 import random
 import requests
-import shutil
 import signal
 import socket
-import statistics
 import sys
 import threading
 import time
 import webbrowser
 
-from collections import Counter
 from colorama import Fore, Style, init
-from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor, TimeoutError
 from rich.console import Console
-from rich.progress import track, BarColumn, TimeRemainingColumn, SpinnerColumn, TimeElapsedColumn, Progress
+from rich.progress import TimeElapsedColumn, Progress
 from rich.table import Table
-from rich.panel import Panel
-from rich.style import Style as STL
 from urllib.parse import urlparse
 
 import snoopbanner
 
-Android = True if hasattr(sys, 'getandroidapilevel') else False
 
-if not Android:
-    import folium
-    from folium.plugins import MarkerCluster
-    from more_itertools import unique_everseen
-    from operator import itemgetter
+Android = True if hasattr(sys, 'getandroidapilevel') else False
 
 locale.setlocale(locale.LC_ALL, '')
 init(autoreset=True)
@@ -82,56 +69,7 @@ def Erf(hvostfile):
 
 
 ## Карты, мета инфо.
-def meta_icon(bad=None, marker_cluster=None, maps=None, vega_lite_S=None, vega_lite_O=None, vega_lite_G=None,
-              full=False, file=None, Provider=False):
-    layer_right = folium.TileLayer('openstreetmap')
-    layer_left = folium.TileLayer('OpenTopoMap')
-    sbs = folium.plugins.SideBySideLayers(layer_left=layer_left, layer_right=layer_right)
-    layer_left.add_to(maps)
-    layer_right.add_to(maps)
-    lay2 = sbs.add_to(maps)
-
-    icon = folium.CustomIcon("https://raw.githubusercontent.com/snooppr/snoop/master/icons/WSL.png", icon_size=(80, 80))
-
-    if full:
-        popups = "💬 Обратите внимание на то, что в <b>Snoop full версии</b> " + \
-                 "сохранены отчеты с расширенной метрикой и не только в <b>html</b> формате, " + \
-                 "но и в <b>csv/txt</b> форматах. Возврат: \
-                 'F5'.<br>{0}<br><code><b>Необработанные данные из файла '{1}' ({2}):</code> </b>{3}"\
-                 .format('~' * 73, file, len(bad), '/ '.join(i if n % 2 == 0 else f"<b>{i}</b>" for n, i in enumerate(bad)))
-    else:
-        popups = "💬 В <b>Snoop demo version</b> доступен лишь HTML-отчёт с <b>урезанным функционалом</b>.<br>" + \
-                 "В Snoop full version пользователю предоставляется полноценный HTML-репорт, <br>" +\
-                 "а также расширенные отчёты в txt/csv форматах.\
-                 <br>{0}<br><code><b>Необработанные данные из файла '{1}' ({2}):</code> </b>{3}"\
-                 .format('~' * 73, file, len(bad), '/ '.join(i if n % 2 == 0 else f"<b>{i}</b>" for n, i in enumerate(bad)))
-
-    return folium.Marker(location=[-63.826, 60], popup=popups, icon=icon).add_to(marker_cluster), lay2
-
-# Сохранение html отчета.
-def save_maps(mapsme=None):
-    with open(mapsme) as fr:
-        fr = fr.read()
-        mapsme_end = fr.replace("<script src=\"https://cdn.jsdelivr.net/npm/leaflet@1.9.3/dist/leaflet.js\"></script>",
-                                "<script src=\"../../../web/lib.js\"></script>", 1) #добавление авторских прав Snoop.
-    with open(mapsme, 'w') as fw:
-        fw.write(mapsme_end)
-
-# Создание карты для плагинов.
-def foliums():
-    maps = folium.Map(location=[-37.0, 74.4], zoom_start=2, no_wrap=True, control_scale=True)
-    control_ = folium.FeatureGroup(name='Памятка')
-    maps.add_child(control_)
-
-    marker_cluster = MarkerCluster().add_to(control_)
-    mcg = folium.plugins.MarkerCluster(control=False)
-    maps.add_child(mcg)
-
-    folium.plugins.MousePosition().add_to(maps)
-    folium.plugins.Fullscreen(position="topright", title="Открыть во весь экран",
-                              title_cancel="Выход из полноэкранного режима",force_separate_button=True).add_to(maps)
-
-    return maps, mcg, marker_cluster
+"Черновик."
 
 
 ## Модуль Yandex_parser.
@@ -303,7 +241,8 @@ def module3():
 ## Модуль Reverse Vgeocoder.
 def module2():
     if Android:
-        print(Style.BRIGHT + Fore.RED + "└──Плагин Reverse Vgeocoder 'сложен' и не поддерживается (по умолчанию) в Snoop_termux\n\nВыход\n" + Style.RESET_ALL)
+        print(Style.BRIGHT + Fore.RED + "└──Плагин Reverse Vgeocoder 'сложен' и не поддерживается (по умолчанию) " + \
+              "в Snoop for Termux\n\nВыход\n" + Style.RESET_ALL)
         sys.exit()
     while True:
         print("""
@@ -336,39 +275,10 @@ def module2():
                 else:
                     put = put.replace("'", "").strip()
 
-# Создание карты 'Обратный геокодер'.
-                maps, mcg, marker_cluster = foliums()
 # Проверка пути файла с координатами.
                 try:
-                    with open(put, "r", encoding="utf8") as geo:
-# Выборка геокоординат.
-                        for line in geo.readlines():
-                            s = rx.findall(line)
-                            s_bad = not rx.findall(line)
-                            wZ1bad.append(str(line) if s_bad is True else "")
-                            if len(s) == 0 or len(s) == 1 or len(s) == 3 or len(s) == 5 or len(s) >= 7:
-                                wZ1bad.append(', '.join(s))
-                                continue
-                            try:
-                                coord.append(list(map(float, s[4:6]))) if s[4:6] else ""
-                            except Exception:
-                                pass
-                            try:
-                                coord.append(list(map(float, s[2:4]))) if s[2:4] else ""
-                            except Exception:
-                                pass
-                            try:
-                                coord.append(list(map(float, s[0:2]))) if s[0:2] else ""
-                            except Exception:
-                                pass
-# Удалили дубли.
-                        coord2 = list(unique_everseen(coord))
-                        coord.clear()
-# Конец выборки.
-                        if sys.platform == 'win32':
-                            print('\033[32;1m|\n└──Good!\033[0m')
-                        else:
-                            print('\033[32;1m┃\n┗━━Good!\033[0m')
+                    if os.path.exists(put) is False:
+                        raise Exception("")
                     break
                 except Exception:
                     print("\033[31;1m└──Указан неверный путь." + \
@@ -378,7 +288,7 @@ def module2():
 
             while True:
                 print("\n\033[36m╭Выберите режим геокодирования:\033[0m\n" + \
-                      "\033[36m├──\033[36m[\033[0m\033[32;1m1\033[0m\033[36m] --> Простой (demo version)\033[0m\n" + \
+                      "\033[36m├──\033[36m[\033[0m\033[32;1m1\033[0m\033[36m] --> Простой (full version)\033[0m\n" + \
                       "\033[36m├──\033[36m[\033[0m\033[32;1m2\033[0m\033[36m] --> Подробный (full version)\033[0m\n" + \
                       "\033[36m└──\033[36m[\033[0m\033[31;1mq\033[0m\033[36m] --> Выход\033[0m\n")
                 rGeo = console.input("[cyan]ввод --->  [/cyan]")
@@ -393,82 +303,7 @@ def module2():
                 print(Style.BRIGHT + Fore.RED + "Выход")
                 break
                 sys.exit()
-            if rGeo == '1':
-                timestartR = time.time()
-                with console.status("[green bold](1/2) Ожидайте, идёт геокодирование...", spinner='earth'):
-                    n_yes = 0
-
-                    dsc = {}
-                    for geo_sh_do in coord2:
-# Гео ш-д от +-85/+-180.
-                        if not -85.1 <= geo_sh_do[0] <= 85.1 or not -180.1 <= geo_sh_do[1] <= 180.1:
-                            wZ1bad.append(str(geo_sh_do))
-                            continue
-                        n_yes += 1
-                        coord.append(geo_sh_do)
-# 1. Простой метод.
-                        try:
-                            folium.Marker(location=geo_sh_do, popup="🌎 <b>Координаты:</b><br><i> " + str(geo_sh_do[0]) + " " + \
-                            str(geo_sh_do[1]) + "<br>" + "~" * 16, icon=folium.Icon(color='blue', icon='ok-sign')).add_to(marker_cluster)
-                        except Exception:
-                            continue
-# Обработка bad (извлечение вложенного списка).
-                    wZ1bad_raw = []
-                    for i in wZ1bad:
-                        [wZ1bad_raw.append(i2) for i2 in i] if isinstance(i, list) else wZ1bad_raw.append(i)
-                    wZ1bad_raw2 = list(unique_everseen(wZ1bad_raw))
-                    wZ1bad_raw2.remove('')
-# Кол-во обработанных координат.
-                    lcoord, lwZ1bad = n_yes, len(wZ1bad_raw2)
-
-                hvostR = os.path.split(put)[1]
-                timefinishR = time.time() - timestartR
-
-                print(Style.RESET_ALL + Fore.CYAN + f"\n╭Время обработки файла '\033[36;1m{hvostR}\033[0m\033[36m' -->",
-                      "\033[36;1m(%.0f" % float(timefinishR) + "sec)" + Style.RESET_ALL)
-                print(Style.RESET_ALL + Fore.CYAN + f"├─Успешно обработано --> '\033[32;1m{lcoord}\033[0m\033[36m' геокоординат")
-
-                if lwZ1bad >= 1:
-                    print(Style.RESET_ALL + Fore.CYAN + f"├─Отброшено --> '\033[31;1m{lwZ1bad}\033[0m\033[36m' случайных данных")
-
-                path_dir = "/results/plugins/ReverseVgeocoder/" if sys.platform != 'win32' else "\\results\\plugins\\ReverseVgeocoder\\"
-                print(Style.RESET_ALL + Fore.CYAN + "└──Статистические результаты сохранены в: " + Style.RESET_ALL + \
-                      f"\033[36;1m{dirresults}{path_dir}*[.txt.html.csv]")
-
-                with console.status("[green bold](2/2) Ожидайте, идёт процесс создания отчётов...", spinner='noise'):
-# Html составляющие.
-                    meta_icon(bad=wZ1bad_raw2, marker_cluster=marker_cluster, maps=maps, file=hvostR)
-                    folium.LayerControl(collapsed=False).add_to(maps)
-# Сохранение карты osm.
-                    namemaps = time.strftime("%Y-%m-%d_%H_%M_%S", time_date)
-                    namemaps = (f'Maps_{namemaps}.html')
-                    mapsme = str(dirresults + "/results/plugins/ReverseVgeocoder/" + str(namemaps))
-                    maps.save(mapsme)
-# Сохраниен/открытие HTML.
-                    save_maps(mapsme=mapsme)
-                try:
-                    if lcoord >= 1:
-                        webbrowser.open(str("file://" + mapsme))
-                except Exception:
-                    pass
-# Запись в txt.
-                try:
-                    file_txtR = open(dirresults + "/results/plugins/ReverseVgeocoder/" + str(hvostR) + ".txt", "w", encoding="utf-8")
-                except Exception:
-                    pass
-                file_txtR.write(f"Полученные и обработанные данные из файла '{hvostR}' ({lcoord}):\n")
-                for coord_geo in coord:
-                    coord_geo = ",".join([str(i) for i in coord_geo])
-                    file_txtR.write(f"{coord_geo}\n")
-                file_txtR.write("===================================" + "\n\n")
-                file_txtR.write(f"Необработанные данные из файла '{hvostR}' ({lwZ1bad}):\n")
-                for badGEO in wZ1bad_raw2:
-                    file_txtR.write(f"{badGEO}\n")
-                file_txtR.write("===================================" + "\n\n")
-                file_txtR.write(time.strftime(f"Дата обработки файла '{hvostR}': %Y-%m-%d_%H:%M:%S", time_date))
-                file_txtR.write(f"\n©2020-{time.localtime().tm_year} «Snoop Project» (demo version).")
-                file_txtR.close()
-            if rGeo == '2':
+            if rGeo == '1' or rGeo == '2':
                 print("\033[31;1m└──В demo version этот метод плагина недоступен\033[0m\n")
                 snoopbanner.donate()
             break

@@ -68,7 +68,7 @@ init(autoreset=True)
 console = Console()
 
 
-vers, vers_code, demo_full = 'v1.4.1a', "s", "d"
+vers, vers_code, demo_full = 'v1.4.1b', "s", "d"
 
 print(f"""\033[36m
   ___|
@@ -1029,14 +1029,10 @@ def license_snoop():
         colorama_v = f", (colorama::{version_lib('colorama')})"
         rich_v = f", (rich::{version_lib('rich')})"
         urllib3_v = f", (urllib3::{version_lib('urllib3')})"
-        folium_v = f", (folium::{version_lib('folium')})" if not Android and light_v is False else ""
-        numpy_v = f", (numpy::{version_lib('numpy')})" if not Android and light_v is False else ""
         psutil_v = f", (psutil::{version_lib('psutil')})"
     else:
         urllib3_v = ""
         colorama_v = ""
-        folium_v = ""
-        numpy_v = ""
         rich_v = ""
         psutil_v = ""
 
@@ -1047,7 +1043,7 @@ def license_snoop():
                               f"Python: [dim cyan]{platform.python_version()}[/dim cyan]\n" + \
                               f"Key libraries: [dim cyan](requests::{requests.__version__}), (certifi::{certifi.__version__}), " + \
                                              f"(speedtest::{networktest.speedtest.__version__}){rich_v}{psutil_v}" + \
-                                             f"{folium_v}{numpy_v}{colorama_v}{urllib3_v}[/dim cyan]\n" + \
+                                             f"{colorama_v}{urllib3_v}[/dim cyan]\n" + \
                               f"CPU(s): [dim cyan]{os.cpu_count()},[/dim cyan] {threadS}\n" + \
                               f"Ram: [dim cyan]{ram} Мб,[/dim cyan] available: {A}{ram_free} Мб{B}\n" + \
                               f"Recommended pool: [dim cyan]{pool_}[/dim cyan]",
@@ -1902,6 +1898,11 @@ document.getElementById('snoop').innerHTML=""
                 bad_raw(flagBS_err, time_date, [args.web, args.exclude_country, args.one_level, args.site_list])
             else:
                 print(f"{Fore.CYAN}└───Дата поиска:{Style.RESET_ALL} {time.strftime('%Y-%m-%d_%H:%M:%S', time_date)}\n")
+
+            if "demo" in version:
+                console.print(f"[italic]  Получить Snoop Full Version (+4.5K сайтов):[/italic]\n[dim yellow]  " + \
+                              f"$ {'python ' if 'source' in version else ''}" + \
+                              f"{os.path.basename(sys.argv[0])} --donate/-d[/dim yellow]\n", highlight=False)
 
             console.print(Panel(f"{e_mail} до {Do}", title=license, style=STL(color="white", bgcolor="blue")))
 
