@@ -125,6 +125,7 @@ censors_timeout = 0
 recensor = 0
 lame_workhorse = False
 d_g_l = []
+lst_er_country = []
 symbol_bad = re.compile("[^a-zA-Zа-яА-Я\_\s\d\%\@\-\.\+]")
 
 
@@ -191,18 +192,19 @@ def info_str(infostr, nick, color=True):
 
 
 ## Bad_raw.
-def bad_raw(flagBS_err, time_date, lst_options):
+def bad_raw(flagBS_err, time_date, bad_zone, lst_options):
     print(f"{Fore.CYAN}├───Дата поиска:{Style.RESET_ALL} {time.strftime('%Y-%m-%d_%H:%M:%S', time_date)}")
 
     if any(lst_options):
-        print(f"{Fore.CYAN}└────\033[31;1mBad_raw: {flagBS_err}% БД\033[0m")
+        print(f"{Fore.CYAN}└────\033[31;1mBad_raw: {flagBS_err}% БД, bad_zone {bad_zone}\033[0m")
     else:
         if 4 >= flagBS_err >= 2.5:
-            print(f"{Fore.CYAN}└────\033[33;1mВнимание! Bad_raw: {flagBS_err}% БД\033[0m")
+            print(f"{Fore.CYAN}└────\033[33;1mВнимание! Bad_raw: {flagBS_err}% БД, bad_zone {bad_zone}\033[0m")
         elif 9 >= flagBS_err > 4:
-            print(f"{Fore.CYAN}└────\033[31;1mВнимание!! Bad_raw: {flagBS_err}% БД\033[0m")
+            print(f"{Fore.CYAN}└────\033[31;1mВнимание!! Bad_raw: {flagBS_err}% БД, bad_zone {bad_zone}\033[0m")
         elif flagBS_err > 9:
-            print(f"{Fore.CYAN}└────\033[30m\033[41mВнимание!!! Bad_raw: {flagBS_err}% БД, критический уровень\033[0m")
+            print(f"{Fore.CYAN}└────\033[30m\033[41mВнимание!!! Bad_raw: {flagBS_err}% БД, критический уровень, " + \
+                  f"bad_zone {bad_zone}\033[0m")
 
     print(Fore.CYAN + "     └─нестабильное соединение или I_Censorship")
     print("       \033[36m├─используйте \033[36;1mVPN\033[0m\033[36m/'\033[0m\033[36;1m--web-base\033[0m\033[36m'\033[0m \033[36m\n" + \
@@ -710,6 +712,9 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
                         break
                 del future_rec
 
+# Сбор сбойной локации.
+            if r == None or r == "FakeNone":
+                lst_er_country.append(country_code)
 ## Проверка, 4 методов; #1.
 # Автодетектирование кодировки при устаревшей специфике либы requests/ISO-8859-1, или ее смена вручную через БД.
             try:
@@ -1842,10 +1847,19 @@ document.getElementById('snoop').innerHTML=""
             usernamCSV = re.sub(" ", "_", nick)
             censors_cor = int((censors - recensor) / kef_user)  #err_connection
             censors_timeout_cor = int(censors_timeout / kef_user)  #err time-out
+
             try:
-                flagBS_err = round((censors_cor + censors_timeout_cor) * 100 / (len(BDdemo_new) - len(d_g_l)), 2)
+                flagBS_err = round((censors_cor + censors_timeout_cor) * 100 / (len(BDdemo_new) - len(d_g_l)), 2) 
             except ZeroDivisionError:
                 flagBS_err = 0
+
+            try:
+                bad_zone = f"~{Counter(lst_er_country).most_common(2)[0][0]}/{Counter(lst_er_country).most_common(2)[1][0]}"
+            except IndexError:
+                try:
+                    bad_zone = f"~{Counter(lst_er_country).most_common(2)[0][0]}"
+                except IndexError:
+                    bad_zone = ""
 
             writer = csv.writer(file_csv)
             if rus_windows or rus_unix or Android:
@@ -1875,7 +1889,7 @@ document.getElementById('snoop').innerHTML=""
             writer.writerow('')
             writer.writerow([f'Исключённые_регионы={exl}'])
             writer.writerow([f'Выбор_конкретных_регионов={one}'])
-            writer.writerow([f"Bad_raw:_{flagBS_err}%_БД" if flagBS_err >= 2.5 else ''])
+            writer.writerow([f"Bad_raw:_{flagBS_err}%_БД,_bad_zone_{bad_zone}" if flagBS_err >= 2.5 else ''])
             writer.writerow('')
             writer.writerow(['Дата'])
             writer.writerow([time.strftime("%Y-%m-%d_%H:%M:%S", time_date)])
@@ -1895,7 +1909,7 @@ document.getElementById('snoop').innerHTML=""
             print(f"{Fore.CYAN}├──Сохранено в:{Style.RESET_ALL} {direct_results}")
 
             if flagBS_err >= 2.5:  #perc_%
-                bad_raw(flagBS_err, time_date, [args.web, args.exclude_country, args.one_level, args.site_list])
+                bad_raw(flagBS_err, time_date, bad_zone, [args.web, args.exclude_country, args.one_level, args.site_list])
             else:
                 print(f"{Fore.CYAN}└───Дата поиска:{Style.RESET_ALL} {time.strftime('%Y-%m-%d_%H:%M:%S', time_date)}\n")
 
