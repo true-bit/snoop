@@ -1849,7 +1849,7 @@ document.getElementById('snoop').innerHTML=""
             censors_timeout_cor = int(censors_timeout / kef_user)  #err time-out
 
             try:
-                flagBS_err = round((censors_cor + censors_timeout_cor) * 100 / (len(BDdemo_new) - len(d_g_l)), 2) 
+                flagBS_err = round((censors_cor + censors_timeout_cor) * 100 / (len(BDdemo_new) - len(d_g_l)), 2)
             except ZeroDivisionError:
                 flagBS_err = 0
 
