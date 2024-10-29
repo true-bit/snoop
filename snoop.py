@@ -386,12 +386,19 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
         connections = 200 if not Windows else connections_win
         maxsize = 100 if not Windows else maxsize_win
 
-    requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ':HIGH:!DH:!aNULL' #urllib3 v1.26.18, в urllib3 v2 баг в либе с процессами.
-    requests.packages.urllib3.disable_warnings()
     # adapter = requests.adapters.HTTPAdapter(pool_connections=1, pool_maxsize=0, max_retries=0, pool_block=True)
-    # adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False, ssl_minimum_version=ssl.TLSVersion.TLSv1)
     adapter = requests.adapters.HTTPAdapter()
-    adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False)
+    try:
+        requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ':HIGH:!DH:!aNULL' #urllib3 v1.26.18, в urllib3 v2 баг в либе с процессами.
+        adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False)
+    except Exception:
+        if not Windows:
+            console.log("[yellow]Внимание! \n\nВ urllib3 >= v2 разработчики отказались от поддержки старых шифров. " + \
+                        "Некоторые, немногочисленные, устаревшие сайты из БД, работающие по старой технологии, будут возвращать " + \
+                        "ошибки соединения, которых можно было бы избежать.[/yellow]\n\n" + \
+                        "Рекомендация: '$ python -m pip install urllib3==1.26.18'")
+        adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False, ssl_minimum_version=ssl.TLSVersion.TLSv1)
+    requests.packages.urllib3.disable_warnings()
     requests_future = requests.Session()
     requests_future.max_redirects = 6
     requests_future.verify = False if cert is False else True
@@ -1214,7 +1221,7 @@ def run():
 # Информативный вывод.
     if args.module:
         if not 'snoopplugins' in globals():
-            snoopbanner.logo(text="\nTHIS IS THE LIGHT VERSION OF SNOOP PROJECT WITH PLUGINS DISABLED\n$ snoop_light_cli --version/-V")
+            snoopbanner.logo(text="\nTHIS IS THE LIGHT VERSION OF SNOOP PROJECT WITH PLUGINS DISABLED\n$ snoop_light_cli.bin --version/-V")
             sys.exit()
         if 'full' in version:
             with console.status("[cyan] проверка параметров..."):
