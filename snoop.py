@@ -719,7 +719,7 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
                         break
                 del future_rec
 
-# Сбор сбойной локации.
+# Сбор сбойной локации bad_zone.
             if r == None or r == "FakeNone":
                 lst_er_country.append(country_code)
 ## Проверка, 4 методов; #1.
@@ -1369,7 +1369,7 @@ def run():
                     S = datajson_sort.get(con).get("country_klas") if Windows else datajson_sort.get(con).get("country")
                     i += 1
                     listfull.append(f"\033[36;2m{i}.\033[0m \033[36m{S}  {con}")
-                print("\n~~~~~~~~~~~~~~~~\n".join(listfull))
+                print("\n~~~~~~~~~~~~~~~~\n".join(listfull), "\n")
 
 # Сортируем по странам для full/demo version (1!).
             elif sortY == "1":
@@ -1866,7 +1866,7 @@ document.getElementById('snoop').innerHTML=""
                 try:
                     bad_zone = f"~{Counter(lst_er_country).most_common(2)[0][0]}"
                 except IndexError:
-                    bad_zone = ""
+                    bad_zone = "ERR"
 
             writer = csv.writer(file_csv)
             if rus_windows or rus_unix or Android:
