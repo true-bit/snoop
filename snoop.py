@@ -1792,8 +1792,8 @@ var don = decodeURIComponent(escape(window.atob("\\
 ZXJzaW9uLgoK0JXRgdC70Lgg0LjQvNC10LXRgtGB0Y8g0LLQvtC30LzQvtC20L3QvtGB0YLRjCwg\\
 0L/QvtC00LTQtdGA0LbQuNGC0LUg0YTQuNC90LDQvdGB0L7QstC+INGN0YLQvtGCINGD0L3QuNC6\\
 0LDQu9GM0L3Ri9C5IElULdC/0YDQvtC10LrRgjoK0L/QvtC70YPRh9C40YLQtSBTbm9vcCBmdWxs\\
-IHZlcnNpb24g0LHQtdC3INC+0LPRgNCw0L3QuNGH0LXQvdC40LkuCgpD0LwuICJzbm9vcF9jbGkg\\
-LS1oZWxwIC8gc25vb3BfY2xpLmV4ZSAtLWhlbHAiLgo=")))
+IHZlcnNpb24g0LHQtdC3INC+0LPRgNCw0L3QuNGH0LXQvdC40LkuCgpD0LwuICJzbm9vcF9jbGku\\
+YmluIC0taGVscCAvIHNub29wX2NsaS5leGUgLS1oZWxwIi4K")))
 
 var don1 = decodeURIComponent(escape(window.atob("\\
 PGZvbnQgY29sb3I9InJlZCIgc2l6ZT0iMiI+4oybIFNub29wIGRlbW8gdmVyc2lvbi48L2ZvbnQ+\\
@@ -1803,8 +1803,8 @@ udGI0LXQs9C+INGA0LDQt9Cy0LjRgtC40Y8g0J/QniDigJQg0L/RgNC+0LXQutGC0YMg0YLRgNC1\\
 CtCf0L7QtNC00LXRgNC20LjRgtC1INGA0LDQt9GA0LDQsdC+0YLRh9C40LrQsCDQuCDQtdCz0L4g\\
 0LjRgdGB0LvQtdC00L7QstCw0L3QuNGPINC00L7QvdCw0YLQvtC8LCDQuNC70Lgg0L/RgNC40L7Q\\
 sdGA0LXRgtCw0Y8gPGI+PGZvbnQgY29sb3I9ImdyZWVuIj5Tbm9vcCBmdWxsIHZlcnNpb24hPC9m\\
-b250PjwvYj4KPGJyPjxicj4KQ9C8LiAic25vb3BfY2xpIC0taGVscCAvIHNub29wX2NsaS5leGUg\\
-LS1oZWxwIi4K")))
+b250PjwvYj4KPGJyPjxicj4KQ9C8LiAic25vb3BfY2xpLmJpbiAtLWhlbHAgLyBzbm9vcF9jbGku\\
+ZXhlIC0taGVscCIuCg==")))
 
 func = setInterval(() => {alert(don)}, rnd(30, 45) * 1000)
 func1 = setTimeout(() => {id777.onmouseover = function() {document.write(don1)}}, rnd(55, 75) * 1000)
@@ -1828,15 +1828,18 @@ func1 = setTimeout(() => {id777.onmouseover = function() {document.write(don1)}}
 <div id='buttons'>
 <a target='_blank' href='https://github.com/snooppr/snoop' class="SnA"><span class="SnSpan">🛠  Source Исходный код</span></a>
 <a target='_blank' href='https://drive.google.com/file/d/12DzAQMgTcgeG-zJrfDxpUbFjlXcBq5ih/view' class="DnA"><span class="DnSpan">📖 Doc Документация</span></a>
-<a target='_blank' href='https://yoomoney.ru/to/4100111364257544' class="DnA"><span class="DnSpan">💳 Donation Пожертвование</span></a>
+<a onclick='bay()' class="DnA"><span class="DnSpan">💳 Get Full_Version</span></a>
 </div>
 
 <br><br>\n
 """ + \
+
+snoopbanner.buy() + \
+
 f"""<p class='str1'><span style="color: gray"><small><small>Отчёт создан в ПО Snoop Project. <br> ©2020-{time.localtime().tm_year} «Snoop Project».</small></small></span></p>
 
 <script>
-if(typeof don == "undefined" || typeof don1 == "undefined" || don.length != 212 || don1.length != 331 || typeof func == "undefined" || typeof func1 == "undefined")
+if(typeof don == "undefined" || typeof don1 == "undefined" || don.length != 216 || don1.length != 335 || typeof func == "undefined" || typeof func1 == "undefined")
 document.getElementById('snoop').innerHTML=""
 </script>
 
