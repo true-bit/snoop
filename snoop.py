@@ -1836,7 +1836,7 @@ func1 = setTimeout(() => {id777.onmouseover = function() {document.write(don1)}}
 
 snoopbanner.buy() + \
 
-f"""<p class='str1'><span style="color: gray"><small><small>Отчёт создан в ПО Snoop Project. <br> ©2020-{time.localtime().tm_year} «Snoop Project».</small></small></span></p>
+f"""\n\n<p class='str1'><span style="color: gray"><small><small>Отчёт создан в ПО Snoop Project. <br> ©2020-{time.localtime().tm_year} «Snoop Project».</small></small></span></p>
 
 <script>
 if(typeof don == "undefined" || typeof don1 == "undefined" || don.length != 216 || don1.length != 335 || typeof func == "undefined" || typeof func1 == "undefined")
