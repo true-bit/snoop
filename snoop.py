@@ -8,7 +8,6 @@ import glob
 import itertools
 import json
 import locale
-import networktest
 import os
 import platform
 import psutil
@@ -38,6 +37,7 @@ from rich.table import Table
 
 import snoopbanner
 import snoopplugins
+import snoopnetworktest
 
 if int(platform.python_version_tuple()[1]) >= 8:
     from importlib.metadata import version as version_lib
@@ -120,9 +120,7 @@ BDflag = snoopbanner.DB('BDflag')
 flagBS = len(BDdemo)
 timestart = time.time()
 time_date = time.localtime()
-censors = 0
-censors_timeout = 0
-recensor = 0
+censors, censors_timeout, recensor = 0, 0, 0
 lame_workhorse = False
 dic_binding = {"badraw": [], "badzone": [], "options_speed": [], "symbol_bad": re.compile("[^a-zA-Zа-яА-Я\_\s\d\%\@\-\.\+]")}
 
@@ -176,6 +174,7 @@ def mem_test():
         return round(psutil.virtual_memory().available / 1024 / 1024)
     except Exception:
         if not Windows:
+            console.print(f"{' ' * 17} [bold red]ERR Psutil lib[/bold red]")
             return int(subprocess.check_output("free -m", shell=True, text=True).splitlines()[1].split()[-1])
         else:
             return -1
@@ -267,7 +266,7 @@ def print_invalid(websites_names, message, color=True):
 
 
 ## Вернуть результат future for2.
-# Логика: возврат ответа и дуб_метода (из 4-х) в случае успеха, иначе возврат несуществующего метода для повторного запроса.
+# Логика: возврат ответа и дуб_метода (из 4-х) в случае успеха/повтора.
 def request_res(request_future, error_type, websites_names, timeout=None, norm=False,
                 print_found_only=False, verbose=False, color=True, country_code=''):
     global censors_timeout, censors
@@ -326,7 +325,6 @@ def new_session(url, headers, requests_future, error_type, username, websites_na
 
 def sreports(url, headers, requests_future, error_type, username, websites_names, r):
     os.makedirs(f"{dirpath}/results/nicknames/save reports/{username}", exist_ok=True)
-
 # Сохранять отчеты для метода: redirection.
     if error_type == "redirection":
         try:
@@ -426,7 +424,7 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
                 console.print(Panel(Markdown(r_east.text.replace("=" * 83, "")),
                                     subtitle="[bold blue]журнал snoop-версий[/bold blue]", style=STL(color="cyan")))
                 console.print(Panel(f"[bold cyan]Дата создания проекта:[/bold cyan] 2020-02-14 " + \
-                                    f"({round((time.time() - 1581638400.0) / 86400)}_дней).\n" + \
+                                    f"({round((time.time() - 1581638400) / 86400)}_дней).\n" + \
                                     f"[bold cyan]Последнее обновление репозитория:[/bold cyan] " + \
                                     f"{'_'.join(r_repo.get('pushed_at')[0:-4].split('T'))} (UTC).\n" + \
                                     f"[bold cyan]Размер репозитория:[/bold cyan] {round(int(r_repo.get('size')) / 1024, 1)} Мб.\n" + \
@@ -984,12 +982,12 @@ def license_snoop():
         pool_ = os.cpu_count() * 5 if Windows else (50 if os.cpu_count() == 1 else 100)
 
         if Windows and 'full' in version:
-            ram_av = 1100
+            ram_av = 1200
         elif Windows and 'demo' in version:
             ram_av = 500
 
         if Linux and 'full' in version:
-            ram_av = 900
+            ram_av = 1300
         elif Linux and 'demo' in version:
             ram_av = 400
 
@@ -1043,7 +1041,7 @@ def license_snoop():
                               f"Locale: [dim cyan]{locale.setlocale(locale.LC_ALL)}[/dim cyan]\n" + \
                               f"Python: [dim cyan]{platform.python_version()}[/dim cyan]\n" + \
                               f"Key libraries: [dim cyan](requests::{requests.__version__}), (certifi::{certifi.__version__}), " + \
-                                             f"(speedtest::{networktest.speedtest.__version__}){rich_v}{psutil_v}" + \
+                                             f"(speedtest::{snoopnetworktest.speedtest.__version__}){rich_v}{psutil_v}" + \
                                              f"{colorama_v}{urllib3_v}[/dim cyan]\n" + \
                               f"CPU(s): [dim cyan]{os.cpu_count()},[/dim cyan] {threadS}\n" + \
                               f"Ram: [dim cyan]{ram} Мб,[/dim cyan] available: {A}{ram_free} Мб{B}\n" + \
@@ -1120,7 +1118,7 @@ def main_cli():
                               help="\033[36mУ\033[0mказать файл со списком user-ов. Snoop интеллектуально обработает \
                                     данные и предоставит доп.отчеты")
     search_group.add_argument("--save-page", "-S", action="store_true", dest="reports", default=False,
-                              help="\033[36mС\033[0mохранять найденные странички пользователей в локальные html-файл,\
+                              help="\033[36mС\033[0mохранять найденные странички пользователей в локальные html-файлы,\
                               медленный режим")
     search_group.add_argument("--cert-on", "-C", default=False, action="store_true", dest="cert",
                               help=argparse.SUPPRESS)
@@ -1212,7 +1210,7 @@ def main_cli():
 # Информативный вывод.
     if args.module:
         if not 'snoopplugins' in globals():
-            snoopbanner.logo(text="\nTHIS IS THE LIGHT VERSION OF SNOOP PROJECT WITH PLUGINS DISABLED\n$ snoop_light_cli.bin --version/-V")
+            snoopbanner.logo(text=f"\nTHIS IS THE LIGHT VERSION OF SNOOP PROJECT WITH PLUGINS DISABLED\n$ {os.path.basename(sys.argv[0])} --version/-V")
             sys.exit()
         if 'full' in version:
             with console.status("[cyan] проверка параметров..."):
@@ -1638,7 +1636,7 @@ def main_cli():
 ## Опция '-v'.
     if args.verbose and bool(args.username) or args.verbose and bool(USERLIST):
         print(Fore.CYAN + format_txt("активирована опция '-v': «подробная вербализация в CLI»\n", k=True))
-        networktest.nettest()
+        snoopnetworktest.nettest()
 
 
 ## Опция  '-w' активна/не активна.
