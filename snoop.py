@@ -272,7 +272,7 @@ def request_res(request_future, error_type, websites_names, timeout=None, norm=F
     global censors_timeout, censors
 
     try:
-        res = request_future.result(timeout=timeout + 4)
+        res = request_future.result(timeout=timeout + 20)
         if res.status_code:
             return res, error_type, str(round(res.elapsed.total_seconds(), 2))
     except requests.exceptions.HTTPError as err1:
@@ -360,39 +360,21 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
 
     if speed:
         connections = speed + 10
-        maxsize = speed + 5
     elif speed is False:
-        if Windows and 'full' in version:
-            if os.cpu_count() > 16:
-                connections_win = 130
-                maxsize_win = 120
-            elif os.cpu_count() == 16:
-                connections_win = 90
-                maxsize_win = 80
-            elif os.cpu_count() == 12:
-                connections_win = 70
-                maxsize_win = 60
-            elif os.cpu_count() <= 8:
-                connections_win = 50
-                maxsize_win = 40
-        elif Windows and 'demo' in version:
-            connections_win = 50
-            maxsize_win = 30
-        connections = 200 if not Windows else connections_win
-        maxsize = 100 if not Windows else maxsize_win
+        connections = 250 if not Windows else 60
 
     # adapter = requests.adapters.HTTPAdapter(pool_connections=1, pool_maxsize=0, max_retries=0, pool_block=True)
     adapter = requests.adapters.HTTPAdapter()
     try:
         requests.packages.urllib3.util.ssl_.DEFAULT_CIPHERS += ':HIGH:!DH:!aNULL' #urllib3 v1.26.18, в urllib3 v2 баг в либе с процессами.
-        adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False)
+        adapter.init_poolmanager(connections=connections, maxsize=10, block=False)
     except Exception:
         if not Windows:
             console.log("[yellow]Внимание! \n\nВ urllib3 >= v2 разработчики отказались от поддержки старых шифров. " + \
                         "Некоторые, немногочисленные, устаревшие сайты из БД, работающие по старой технологии, будут возвращать " + \
                         "ошибки соединения, которых можно было бы избежать.[/yellow]\n\n" + \
                         "Рекомендация: '$ python -m pip install urllib3==1.26.18'")
-        adapter.init_poolmanager(connections=connections, maxsize=maxsize, block=False, ssl_minimum_version=ssl.TLSVersion.TLSv1)
+        adapter.init_poolmanager(connections=connections, maxsize=10, block=False, ssl_minimum_version=ssl.TLSVersion.TLSv1)
     requests.packages.urllib3.disable_warnings()
     requests_future = requests.Session()
     requests_future.max_redirects = 6
@@ -514,20 +496,22 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
             lame_workhorse = True
             executor1 = ThreadPoolExecutor(max_workers=8 if not speed else speed)
     elif Windows:
+        cpu = 1 if psutil.cpu_count(logical=False) == None else psutil.cpu_count(logical=False)
         if norm is False:
-            tread__ = len(BDdemo_new) if len(BDdemo_new) < 15 else 15
+            thread__ = len(BDdemo_new) if len(BDdemo_new) < (cpu * 5) else (12 if cpu < 4 else 30)
         else:
-            tread__ = len(BDdemo_new) if len(BDdemo_new) < (os.cpu_count() * 5) else (os.cpu_count() * 5 if os.cpu_count() <= 24 else 120)
-        executor1 = ThreadPoolExecutor(max_workers=tread__ if not speed else speed)
+            thread__ = len(BDdemo_new) if len(BDdemo_new) < (os.cpu_count() * 5) else (14 if cpu < 4 else 40)
+        executor1 = ThreadPoolExecutor(max_workers=thread__ if not speed else speed)
     elif Linux:
         if norm is False:
-            proc_ = len(BDdemo_new) if len(BDdemo_new) < 80 else (40 if os.cpu_count() == 1 else 80)
+            proc_ = len(BDdemo_new) if len(BDdemo_new) < 70 else (50 if len(os.sched_getaffinity(0)) < 4 else 180)
         else:
-            proc_ = len(BDdemo_new) if len(BDdemo_new) < 100 else (50 if os.cpu_count() == 1 else 100)
+            proc_ = len(BDdemo_new) if len(BDdemo_new) < 70 else (60 if len(os.sched_getaffinity(0)) < 4 else 240)
         executor1 = ProcessPoolExecutor(max_workers=proc_ if not speed else speed)
 
     if norm is False:
         executor2 = ThreadPoolExecutor(max_workers=1)
+
 
 ## Результаты анализа всех сайтов.
     dic_snoop_full = {}
@@ -621,11 +605,10 @@ def snoop(username, BDdemo_new, verbose=False, norm=False, reports=False, user=F
             spin_emoj = 'arrow3' if norm else random.choice(["dots", "dots12"])
             progress = Progress(TimeElapsedColumn(), SpinnerColumn(spinner_name=spin_emoj),
                                 "[progress.percentage]{task.percentage:>1.0f}%", BarColumn(bar_width=None, complete_style='cyan',
-                                finished_style='cyan bold'), refresh_per_second=3.0)  #transient=True) #исчезает прогресс
+                                finished_style='cyan bold'), refresh_per_second=1.0)  #transient=True) #исчезает прогресс
         else:
-            refresh_per_second = 3.0 if 'demo' in version else 1.0
             progress = Progress(TimeElapsedColumn(), "[progress.percentage]{task.percentage:>1.0f}%", BarColumn(bar_width=None,
-                                complete_style='cyan', finished_style='cyan bold'), refresh_per_second=refresh_per_second)
+                                complete_style='cyan', finished_style='cyan bold'), refresh_per_second=1.0)
     else:
         refresh = True
         progress = Progress(TimeElapsedColumn(), "[progress.percentage]{task.percentage:>1.0f}%", auto_refresh=False)
@@ -893,12 +876,21 @@ def timeout_check(value):
 def speed_snoop(speed):
     try:
         speed = int(speed)
-        if speed <= 0 or speed > 160:
+        if Windows and (speed <= 0 or speed > 60):
+            raise Exception("")
+        elif speed <= 0 or speed > 300:
             raise Exception("")
         return speed
     except Exception:
-        raise argparse.ArgumentTypeError(f"\n\033[31;1mMax. workers thread/proc = '{speed}' Err,\033[0m" + \
-                                          " \033[36m рабочий диапазон от 1 до 160 целым числом.\n \033[0m")
+        if not Windows:
+            raise argparse.ArgumentTypeError(f"\n\033[31;1mMax. workers proc = '{speed}' Err,\033[0m" + \
+                                              " \033[36m рабочий диапазон от '1' до '300' целым числом.\n \033[0m")
+        else:
+            snoopbanner.logo(text=format_txt(f" !  Задана слишком высокая многопоточноть: '{speed} поток' не имеет смысла, " + \
+                                             f"уменьшите значение '--pool/-p <= 60'. Обратите внимание, что, например, " + \
+                                             f"в OS GNU/Linux используется иная технология, которую имеет смысл разгонять.",
+                                             k=True, m=True) + "\n\n", exit=False)
+            sys.exit()
 
 
 ## Обновление Snoop.
@@ -979,17 +971,19 @@ def license_snoop():
         console.print(Panel(cop, title='[bold white]COPYRIGHT[/bold white]', style=STL(color="white", bgcolor="blue")))
 
     if not Android:
-        pool_ = os.cpu_count() * 5 if Windows else (50 if os.cpu_count() == 1 else 100)
+        cpu = 2 if psutil.cpu_count(logical=False) == None else psutil.cpu_count(logical=False)
+        pool_ = str(cpu * 5 if Windows else (os.cpu_count() * 40)) + f" {'threads' if Windows else 'process'}, " + \
+                                                                     f"(~1Gb_Ram = 100_Process = 10_Mbit/s)"
 
         if Windows and 'full' in version:
-            ram_av = 1200
+            ram_av = 900
         elif Windows and 'demo' in version:
             ram_av = 500
 
         if Linux and 'full' in version:
-            ram_av = 1300
+            ram_av = 3100 if os.cpu_count() > 4 else 1200
         elif Linux and 'demo' in version:
-            ram_av = 400
+            ram_av = 950
 
         try:
             ram = int(psutil.virtual_memory().total / 1024 / 1024)
@@ -1005,7 +999,7 @@ def license_snoop():
                           f"но кажется используется что-то другое 💻\n\nВыход")
             sys.exit()
     elif Android:
-        pool_ = os.cpu_count() * 2
+        pool_ = os.cpu_count() * 3
 
         try:
             ram = subprocess.check_output("free -m", shell=True, text=True).splitlines()[1].split()[1]
@@ -1127,8 +1121,8 @@ def main_cli():
     search_group.add_argument("--pool", "-p <digit>", metavar='', dest="speed", type=speed_snoop, default=False,
                               help=
                               """
-                              \033[36mО\033[0mтключить автооптимизацию и задать вручную ускорение поиска от 1 до 160 макс. рабочих
-                              потоков/процессов. По умолчанию используется персональная предельная граница этой ЭВМ в
+                              \033[36mО\033[0mтключить автооптимизацию и задать вручную ускорение поиска от 1 до 300 макс. рабочих
+                              потоков/процессов. По умолчанию используется персональная предельная граница ЭВМ в
                               Quick-режиме, в остальных режимах используется предельная граница слабых ПК. Слишком низкое или высокое
                               значение может существенно замедлить работу ПО. ~Расчетное оптимальное значение для данного устройства
                               см. блок 'snoop info' параметр 'Recommended pool' опция [--version/-V]. Данную опцию рекомендуется
@@ -1187,6 +1181,7 @@ def main_cli():
     elif args.speed and 'demo' in version:
         snoopbanner.logo(text=format_txt("в demo недоступна опция '-p' пользовательская настройка ускорения", k=True), exit=False)
         snoopbanner.donate()
+
 
 ## Опция  '-V' не путать с опцией '-v'.
     if args.version:
